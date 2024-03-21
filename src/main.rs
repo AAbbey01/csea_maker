@@ -136,8 +136,6 @@ fn get_v(list_of_students: &mut Vec<Person2>,people_per_group:usize,v:Vec<&(usiz
     ret
 }
 
-
-
 fn read_csv<P: AsRef<Path>>(path: P) -> Result<Vec<Person>, Box<dyn Error>> {
     let file = File::open(path)?;
 
