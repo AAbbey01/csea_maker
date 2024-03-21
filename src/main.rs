@@ -1,13 +1,20 @@
 extern crate csv;
-use std::{ error::Error, fs::File, path::Path};
+use std::{ error::Error, fs::File, path::Path, usize};
 use serde::Deserialize;
 use std::process::exit;
 use itertools::Itertools;
+
+
+/*TODO() 
+    Fuckin Clean Up The Fucking Code It looks like shit
+    # of groups & size input
+
+*/
 fn main() {
-    //App Building, 
+    
     let args: Vec<_> = std::env::args().collect();
     if args.len() <= 1 { 
-    println!("Correct Use: cargo run <CSV_File_path>");
+    println!("Correct Use: cargo run <CSV_File_path> <OPT_group_size>, <OPT_num_of_groups>");
     exit(0);
     }
     match File::open(&args[1]){
@@ -17,10 +24,11 @@ fn main() {
             exit(0);
         },
     }
-    /* let names:Vec<String> = vec![String::from("Cyber"),String::from("ai"),
-                                String::from("encryption"),String::from("piracy"),
-                                String::from("data"),String::from("social_media"),
-                                String::from("iot"),String::from("robotics")]; */
+    
+    let def_group_size:usize = args[2].parse().unwrap_or(5);
+    
+    let def_num_group:usize = args[3].parse().unwrap_or(4);
+    
     let people = match read_csv(&args[1]){
         Ok(s) => s,
         Err(_) => {println!("Nope"); return;},
@@ -30,31 +38,20 @@ fn main() {
     for _i in 1..9{
         v_total_weight.push(0);
     }
-    let mut count = 0;
     for person in people{
-        count+=1;
         v_p2.push(from_person(person));
     }
-
-    assert_eq!(count,v_p2.len());
-
 
     let names:Vec<String> = vec![String::from("Cyber"),String::from("ai"),
                                 String::from("Encryption"),String::from("Piracy"),
                                 String::from("Data"),String::from("Social Media"),
                                 String::from("IoT"),String::from("Robotics")];    
     let v:Vec<(usize,String)> = usize_string(&names);
-
-
-
     let mut all_perms: Vec<Vec<&(usize,String)>> = Vec::new();
-    for perm in v.iter().permutations(4).unique().clone(){
+    for perm in v.iter().permutations(def_num_group).unique().clone(){
         all_perms.push(perm.to_owned());
     }
-
-
-
-    let y = generate_every_set(&mut all_perms,&mut v_p2, 4, 5);
+    let y = generate_every_set(&mut all_perms,&mut v_p2, def_num_group, def_group_size);
     let mut count = 0;
     for set in y.0{
         print!("{}:", &all_perms[y.1][count].1);
@@ -64,7 +61,6 @@ fn main() {
         println!();
         count+=1;
     }
-
 }
 
 pub fn usize_string(names: &Vec<String>) -> Vec<(usize,String)>{
@@ -74,18 +70,12 @@ pub fn usize_string(names: &Vec<String>) -> Vec<(usize,String)>{
     }
     ret
 }
- 
-
-
 
 pub fn generate_every_set(all_of_the_all: &mut Vec<Vec<&(usize,String)>>, list_of_students: &mut Vec<Person2>, _num_of_groups: usize, people_per_group:usize) -> (Vec<(Vec<Person2>,u32)>,usize){
     //let mut all_vectors:Vec<Vec<Person2>> = Vec::new();
     let mut l: Vec<(Vec<Person2>,u32)>;
     let mut v_ret: usize = 0;
     let mut ret: Vec<(Vec<Person2>,u32)> = Vec::new();/*Return Value */
-    
-    //for i in 1..list_of_students.len()*5{
-        
         let mut current_total = 0;
         for perm in 0..all_of_the_all.len(){
             
@@ -93,23 +83,14 @@ pub fn generate_every_set(all_of_the_all: &mut Vec<Vec<&(usize,String)>>, list_o
             l = get_v(list_of_students,people_per_group,p.clone());      
             let mut count = 0;
             let mut total = 0;
-            let mut mo = 0;
             for _t in p{
                 total+= l[count].1;
-                for q in &l{
-                    if mo%5 == 0{
-
-                    }
-                    mo+=1;
-                }
                 count+=1;
             }
             if current_total == 0 || total< current_total {
                 current_total = total;
                 v_ret = perm;
                 ret = l;}
-            
-       // println!();
         }   
     return (ret,v_ret)
 }
@@ -155,7 +136,8 @@ fn get_v(list_of_students: &mut Vec<Person2>,people_per_group:usize,v:Vec<&(usiz
     ret
 }
 
-/////////
+
+
 fn read_csv<P: AsRef<Path>>(path: P) -> Result<Vec<Person>, Box<dyn Error>> {
     let file = File::open(path)?;
 
