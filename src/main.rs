@@ -25,19 +25,16 @@ fn main() {
         },
     }
     
-    let def_group_size:usize = args[2].parse().unwrap_or(5);
+    let def_group_size:usize = if args.len()>2{args[2].parse().unwrap_or(5)}else{5};
     
-    let def_num_group:usize = args[3].parse().unwrap_or(4);
+    let def_num_group:usize = if args.len()>3{args[3].parse().unwrap_or(4)}else{4};
     
     let people = match read_csv(&args[1]){
         Ok(s) => s,
         Err(_) => {println!("Nope"); return;},
     };
     let mut v_p2:Vec<Person2> = Vec::new();
-    let mut v_total_weight:Vec<u32> = Vec::new();
-    for _i in 1..9{
-        v_total_weight.push(0);
-    }
+
     for person in people{
         v_p2.push(from_person(person));
     }
@@ -110,7 +107,7 @@ fn get_v(list_of_students: &mut Vec<Person2>,people_per_group:usize,v:Vec<&(usiz
             if inc>8{
                 break;
             }
-            for _t in 1..list_of_student2.len(){
+            for _t in 0..list_of_student2.len(){
                 let l = list_of_student2.remove(0);
                 if l.list_w_names[i.0].0 == inc{
                     val.push(l.clone());
