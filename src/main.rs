@@ -4,14 +4,9 @@ use serde::Deserialize;
 use std::process::exit;
 use itertools::Itertools;
 
+static mut MIMIMUM:u32 = 0;
 
-/*TODO() 
-    Fuckin Clean Up The Fucking Code It looks like shit
-    # of groups & size input
-
-*/
 fn main() {
-    
     let args: Vec<_> = std::env::args().collect();
     if args.len() <= 1 { 
     println!("Correct Use: cargo run <CSV_File_path> <OPT_group_size>, <OPT_num_of_groups>");
@@ -24,21 +19,17 @@ fn main() {
             exit(0);
         },
     }
-    
     let def_group_size:usize = if args.len()>2{args[2].parse().unwrap_or(5)}else{5};
-    
     let def_num_group:usize = if args.len()>3{args[3].parse().unwrap_or(4)}else{4};
-    
-    let people = match read_csv(&args[1]){
+    let people: Vec<Person> = match read_csv(&args[1]){
         Ok(s) => s,
         Err(_) => {println!("Nope"); return;},
     };
     let mut v_p2:Vec<Person2> = Vec::new();
-
     for person in people{
         v_p2.push(from_person(person));
+        unsafe { MIMIMUM+=1 };
     }
-
     let names:Vec<String> = vec![String::from("Cyber"),String::from("ai"),
                                 String::from("Encryption"),String::from("Piracy"),
                                 String::from("Data"),String::from("Social Media"),
@@ -48,12 +39,13 @@ fn main() {
     for perm in v.iter().permutations(def_num_group).unique().clone(){
         all_perms.push(perm.to_owned());
     }
-    let y = generate_every_set(&mut all_perms,&mut v_p2, def_num_group, def_group_size);
+    let y: (Vec<(Vec<Person2>, u32)>, usize) = generate_every_set(&mut all_perms,&mut v_p2, def_num_group, def_group_size);
     let mut count = 0;
+    println!("Index of lowest: {}",y.1);
     for set in y.0{
-        print!("{}:", &all_perms[y.1][count].1);
+        print!("{}: ", &all_perms[y.1][count].1);
         for pers in set.0{
-            print!("{} ", pers.email);
+            print!("{} w/score: {}, ", pers.email, pers.list_w_names[*&all_perms[y.1][count].0].0);
         }
         println!();
         count+=1;
@@ -84,11 +76,17 @@ pub fn generate_every_set(all_of_the_all: &mut Vec<Vec<&(usize,String)>>, list_o
                 total+= l[count].1;
                 count+=1;
             }
+            if total == unsafe { MIMIMUM }{
+                println!("Omg it happened, made perfect groups");
+                unsafe{println!("{} was the minimum score possible, and the score was {}",MIMIMUM, total);}
+                return (l,perm)
+            }
             if current_total == 0 || total< current_total {
                 current_total = total;
                 v_ret = perm;
                 ret = l;}
-        }   
+        }
+        println!("Lowest Score: {}",current_total);   
     return (ret,v_ret)
 }
 
@@ -176,13 +174,10 @@ pub struct Person2{
 }
 
 fn from_person(mut p:Person) -> Person2{
-    let _w = p.email.split_off(p.email.find('@').unwrap_or(p.email.len()));
-    let t = vec![(p.cyber,String::from("Cyber")),(p.ai,String::from("ai")),
+    let _w: String = p.email.split_off(p.email.find('@').unwrap_or(p.email.len()));
+    let t: Vec<(u32, String)> = vec![(p.cyber,String::from("Cyber")),(p.ai,String::from("ai")),
                                      (p.encryption,String::from("Encryption")),(p.piracy,String::from("Piracy")),
                                      (p.data,String::from("Data")),(p.social_media,String::from("Social Media")),
                                      (p.iot,String::from("IoT")),(p.robotics,String::from("Robotics"))];
-    Person2{email: p.email, 
-    
-    list_w_names: t
-    }
+    Person2{email: p.email,list_w_names: t}
 }
