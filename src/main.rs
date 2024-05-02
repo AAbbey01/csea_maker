@@ -1,10 +1,11 @@
+
 use std::fs::File;
 use std::usize;
-
 use std::process::exit;
 use std::thread::{self};
 use csea_maker::generator::{self, generate_every_set};
 use itertools::Itertools;
+
 
 static mut MIMIMUM:u32 = 0;
 static mut V_P2: Vec<csea_maker::people::Person2> = vec![];   
@@ -99,7 +100,7 @@ fn main() -> std::io::Result<()> {
                 for pers in &set.0{
                     print!("{} w/score: {},", pers.email,  pers.list_w_names[*&permed_names_with_index[the_one.1][count].0].0 );
                 }
-                println!();
+               println!();
                 count+=1;
                 if count>def_num_group-1{break;}
             }
